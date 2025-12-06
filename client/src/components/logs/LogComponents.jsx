@@ -98,7 +98,9 @@ export const DayCard = ({ date, transactionsCount, revenue, profit, onClick }) =
     );
 };
 
-export const HeaderStats = ({ revenue, profit, expenses, loss }) => {
+export const HeaderStats = ({ revenue, profit, expenses, loss , selectedMonth,selectedDay}) => {
+    console.log(selectedDay);
+    
     return (
         <Row className="g-3 mb-4">
             <Col md={3}>

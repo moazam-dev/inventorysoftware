@@ -29,12 +29,13 @@ exports.getMonthsByYear = async (year) => {
         { $match: { year: parseInt(year) } },
         {
             $group: {
-                _id: '$month',
+                _id: "$month",
                 itemsSold: { $sum: '$itemsSold' },
                 totalRevenue: { $sum: '$totalRevenue' },
                 totalExpenses: { $sum: '$totalExpenses' },
                 totalProfit: { $sum: '$totalProfit' },
-                itemsReturned: { $sum: '$itemsReturned' }
+                itemsReturned: { $sum: '$itemsReturned' },
+                totalLoss: { $sum: '$totalLoss' }
             }
         }
     ]);
@@ -55,6 +56,7 @@ exports.getMonthsByYear = async (year) => {
             totalExpenses: found ? found.totalExpenses : 0,
             totalProfit: found ? found.totalProfit : 0,
             itemsReturned: found ? found.itemsReturned : 0,
+            totalLoss: found ? found.totalLoss : 0,
             hasData: !!found
         });
     }
@@ -118,12 +120,13 @@ exports.getDayDetails = async (year, month, day) => {
         }
     });
 
-    const calcProfit = calcRevenue - calcExpenses;
-
+    const calcProfit = (calcRevenue - calcExpenses) > 0 ? (calcRevenue - calcExpenses) : 0;
+    const calcLoss = (calcRevenue - calcExpenses) < 0 ? (calcExpenses - calcRevenue) : 0;
     return {
         totalRevenue: calcRevenue,
         totalExpenses: calcExpenses,
         totalProfit: calcProfit,
+        totalLoss: calcLoss,
         transactions: mergedList
     };
 };
@@ -165,8 +168,8 @@ exports.updateDailyLog = async (dateObj, type, amount, itemCount = 0, transactio
         }
     }
 
-    log.totalProfit = (log.totalRevenue - log.totalExpenses ) >0 ?(log.totalRevenue - log.totalExpenses ):0;
-    log.totalLoss = (log.totalExpenses - log.totalRevenue) > 0 ? (log.totalExpenses - log.totalRevenue) : 0;
+    log.totalProfit = (log.totalRevenue - log.totalExpenses) > 0 ? (log.totalRevenue - log.totalExpenses) : 0;
+    log.totalLoss = (log.totalRevenue - log.totalExpenses) < 0 ? (log.totalExpenses - log.totalRevenue) : 0;
 
     await log.save();
     return log;

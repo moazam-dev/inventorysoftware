@@ -154,7 +154,7 @@ const Logs = () => {
                     <p className="text-muted mb-0">Complete record of all business activity</p>
                 </div>
             </div>
-
+{/* 
             {view === 'years' && (
                 <div className="mb-4">
                     <InputGroup className="bg-white shadow-sm rounded p-1" style={{ maxWidth: '400px' }}>
@@ -167,7 +167,7 @@ const Logs = () => {
                         />
                     </InputGroup>
                 </div>
-            )}
+            )} */}
 
             {loading ? (
                 <div className="text-center py-5">
@@ -216,14 +216,17 @@ const Logs = () => {
                     {/* DAYS VIEW */}
                     {view === 'days' && (
                         <>
-                            {selectedMonth && (
+                            {
+                            selectedMonth && (
                                 <HeaderStats
+                                    selectedMonth={selectedMonth}
                                     revenue={selectedMonth.totalRevenue}
                                     profit={selectedMonth.totalProfit}
                                     expenses={selectedMonth.totalExpenses}
-                                    loss={selectedMonth.itemsReturned ? selectedMonth.itemsReturned : 0} // Placeholder, loss usually financial
+                                    loss={selectedMonth.totalLoss} // Placeholder, loss usually financial
                                 />
                             )}
+
                             <Row className="g-4">
                                 {days.map((day) => {
                                     // Day data format from backend might need normalizing or we just use it
@@ -256,10 +259,11 @@ const Logs = () => {
                     {view === 'transactions' && dayDetails && (
                         <div>
                             <HeaderStats
+                                 selectedDay={dayDetails}
                                 revenue={dayDetails.totalRevenue}
                                 profit={dayDetails.totalProfit}
                                 expenses={dayDetails.totalExpenses}
-                                loss={0} // Logic for loss could be derived if profit is negative or separate field
+                                loss={dayDetails.totalLoss} // Logic for loss could be derived if profit is negative or separate field
                             />
 
                             <h4 className="fw-bold mb-4">Transactions on {selectedMonth.name} {selectedDay.day}, {selectedYear._id}</h4>

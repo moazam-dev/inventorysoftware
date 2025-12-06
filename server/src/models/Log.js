@@ -33,6 +33,10 @@ const logSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    totalLoss: {
+        type: Number,
+        default: 0
+    },
     itemsSold: {
         type: Number,
         default: 0

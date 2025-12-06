@@ -165,7 +165,8 @@ exports.updateDailyLog = async (dateObj, type, amount, itemCount = 0, transactio
         }
     }
 
-    log.totalProfit = log.totalRevenue - log.totalExpenses;
+    log.totalProfit = (log.totalRevenue - log.totalExpenses ) >0 ?(log.totalRevenue - log.totalExpenses ):0;
+    log.totalLoss = (log.totalExpenses - log.totalRevenue) > 0 ? (log.totalExpenses - log.totalRevenue) : 0;
 
     await log.save();
     return log;

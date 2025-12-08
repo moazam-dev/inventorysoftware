@@ -39,7 +39,7 @@ const ProductSelector = ({ onAddToCart, refreshTrigger }) => {
     }, [searchTerm, category, refreshTrigger]); // Add refreshTrigger dependency
 
     return (
-        <div className="bg-white p-3 rounded shadow-sm h-100">
+        <div className="bg-white p-3 rounded shadow-sm">
             <h5 className="mb-3 fw-bold"><FaSearch className="me-2" /> Select Products</h5>
 
             <div className="d-flex gap-2 mb-3">
@@ -59,7 +59,7 @@ const ProductSelector = ({ onAddToCart, refreshTrigger }) => {
                 </Form.Select>
             </div>
 
-            <div style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto', paddingRight: '5px' }}>
+            <div style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto', paddingRight: '5px', scrollbarWidth: 'none', msOverflowStyle: 'none' }} className="product-selector-scroll">
                 {loading ? (
                     <div className="text-center py-5"><Spinner animation="border" variant="primary" /></div>
                 ) : (

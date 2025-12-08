@@ -1,116 +1,202 @@
 import React from 'react'
-import { Card, ListGroup, Button, Form, Row, Col } from 'react-bootstrap'
-import { FaTrash, FaShoppingCart, FaMoneyBill, FaCreditCard, FaMobileAlt } from 'react-icons/fa'
+import { Card, Table, Button, Form, InputGroup, Badge, Row, Col } from 'react-bootstrap'
+import { FaTrash, FaCheck, FaUser, FaPhone } from 'react-icons/fa'
 
-const Cart = ({ cartItems, onRemove, onUpdateQty, onCheckout, total, discount, setDiscount, customer, setCustomer, paymentMethod, setPaymentMethod, notes, setNotes }) => {
+const Cart = ({
+    cartItems,
+    onRemove,
+    onUpdateQty,
+    onCheckout,
+    total,
+    discount,
+    setDiscount,
+
+    customers = [],
+    paymentMethods = [],
+    selectedCustomer,
+    setSelectedCustomer,
+    paidAmount,
+    setPaidAmount,
+
+    customer,
+    setCustomer,
+
+    paymentMethod,
+    setPaymentMethod,
+    notes,
+    setNotes
+}) => {
+
     const finalTotal = total - (discount || 0);
+    const amountToPay = paidAmount === '' ? finalTotal : Number(paidAmount);
+    const balanceDue = finalTotal - amountToPay;
 
     return (
-        <Card className="border-0 shadow-sm h-100">
+        <Card className="shadow-sm border-0 h-100">
+            <Card.Header className="bg-white py-3">
+                <h5 className="mb-0 fw-bold">Cart Summary</h5>
+            </Card.Header>
             <Card.Body className="d-flex flex-column">
-                <h5 className="mb-3 fw-bold"><FaShoppingCart className="me-2" /> Cart</h5>
-
-                <div className="flex-grow-1 overflow-auto mb-3" style={{ maxHeight: '300px' }}>
+                <div className="flex-grow-1" style={{ overflowY: 'auto', maxHeight: '300px' }}>
                     {cartItems.length === 0 ? (
-                        <div className="text-center text-muted py-5">Cart is empty</div>
+                        <div className="text-center text-muted py-5">
+                            Cart is empty
+                        </div>
                     ) : (
-                        <ListGroup variant="flush">
-                            {cartItems.map((item, index) => (
-                                <ListGroup.Item key={index} className="d-flex justify-content-between align-items-center px-0">
-                                    <div style={{ width: '40%' }}>
-                                        <div className="fw-bold text-truncate">{item.name}</div>
-                                        <small className="text-muted">Rs {item.price}</small>
-                                    </div>
-                                    <div className="d-flex align-items-center">
-                                        <Button size="sm" variant="outline-secondary" className="py-0 px-2" onClick={() => onUpdateQty(index, item.qty - 1)}>-</Button>
-                                        <span className="mx-2">{item.qty}</span>
-                                        <Button size="sm" variant="outline-secondary" className="py-0 px-2" onClick={() => onUpdateQty(index, item.qty + 1)}>+</Button>
-                                    </div>
-                                    <div className="fw-bold">Rs {(item.price * item.qty).toLocaleString()}</div>
-                                    <Button variant="link" className="text-danger p-0 ms-2" onClick={() => onRemove(index)}><FaTrash /></Button>
-                                </ListGroup.Item>
-                            ))}
-                        </ListGroup>
+                        <Table hover responsive borderless className="align-middle">
+                            <tbody>
+                                {cartItems.map((item, index) => (
+                                    <tr key={index}>
+                                        <td>
+                                            <div className="fw-medium">{item.name}</div>
+                                            <small className="text-muted">Rs {item.price}</small>
+                                        </td>
+                                        <td style={{ width: '120px' }}>
+                                            <InputGroup size="sm">
+                                                <Button variant="outline-secondary" onClick={() => onUpdateQty(index, item.qty - 1)}>-</Button>
+                                                <Form.Control
+                                                    className="text-center"
+                                                    value={item.qty}
+                                                    onChange={(e) => onUpdateQty(index, parseInt(e.target.value) || 1)}
+                                                />
+                                                <Button variant="outline-secondary" onClick={() => onUpdateQty(index, item.qty + 1)}>+</Button>
+                                            </InputGroup>
+                                        </td>
+                                        <td className="text-end fw-bold">
+                                            Rs {item.price * item.qty}
+                                        </td>
+                                        <td className="text-end" style={{ width: '40px' }}>
+                                            <Button variant="link" className="text-danger p-0" onClick={() => onRemove(index)}>
+                                                <FaTrash size={14} />
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </Table>
                     )}
                 </div>
 
-                <div className="border-top pt-3 mt-auto">
+                <div className="border-top pt-3 mt-2">
+                    {/* CUSTOMER SELECTION */}
                     <Form.Group className="mb-3">
-                        <Row>
-                            <Col><Form.Label className="small text-muted">Name</Form.Label><Form.Control size="sm" placeholder="Customer name" value={customer.name} onChange={e => setCustomer({ ...customer, name: e.target.value })} /></Col>
-                            <Col><Form.Label className="small text-muted">Phone</Form.Label><Form.Control size="sm" placeholder="Phone number" value={customer.phone} onChange={e => setCustomer({ ...customer, phone: e.target.value })} /></Col>
-                        </Row>
+                        <Form.Label className="small fw-bold text-uppercase text-muted">Customer</Form.Label>
+                        <Form.Select
+                            value={selectedCustomer}
+                            onChange={(e) => setSelectedCustomer(e.target.value)}
+                            className="mb-2"
+                        >
+                            <option value="">Walk-in Customer</option>
+                            {customers.map(c => (
+                                <option key={c._id} value={c._id}>{c.name} {c.phone ? `(${c.phone})` : ''}</option>
+                            ))}
+                        </Form.Select>
+
+                        {!selectedCustomer && (
+                            <Row className="g-2">
+                                <Col>
+                                    <InputGroup size="sm">
+                                        <InputGroup.Text><FaUser /></InputGroup.Text>
+                                        <Form.Control
+                                            placeholder="Name"
+                                            value={customer.name}
+                                            onChange={(e) => setCustomer({ ...customer, name: e.target.value })}
+                                        />
+                                    </InputGroup>
+                                </Col>
+                                <Col>
+                                    <InputGroup size="sm">
+                                        <InputGroup.Text><FaPhone /></InputGroup.Text>
+                                        <Form.Control
+                                            placeholder="Phone"
+                                            value={customer.phone}
+                                            onChange={(e) => setCustomer({ ...customer, phone: e.target.value })}
+                                        />
+                                    </InputGroup>
+                                </Col>
+                            </Row>
+                        )}
                     </Form.Group>
 
-                    <Form.Group className="mb-3">
-                        <Form.Label className="small text-muted">Discount (PKR)</Form.Label>
-                        <Form.Control type="number" size="sm" value={discount} onChange={(e) => setDiscount(Number(e.target.value))} />
-                    </Form.Group>
+                    {/* FINANCIALS */}
+                    <div className="d-flex justify-content-between mb-2">
+                        <span>Subtotal</span>
+                        <span className="fw-bold">Rs {total}</span>
+                    </div>
+                    <div className="d-flex justify-content-between align-items-center mb-2">
+                        <span>Discount</span>
+                        <InputGroup size="sm" style={{ width: '100px' }}>
+                            <Form.Control
+                                type="number"
+                                value={discount}
+                                onChange={(e) => setDiscount(Number(e.target.value))}
+                            />
+                        </InputGroup>
+                    </div>
+                    <div className="d-flex justify-content-between fw-bold fs-5 mb-3 text-dark">
+                        <span>Total</span>
+                        <span>Rs {finalTotal}</span>
+                    </div>
 
                     <Form.Group className="mb-3">
-                        <Form.Label className="small text-muted mb-2">Payment Method</Form.Label>
                         <Row className="g-2">
-                            <Col xs={6}>
-                                <Button
-                                    variant={paymentMethod === 'cash' ? 'primary' : 'outline-light text-dark border'}
-                                    className="w-100 d-flex align-items-center justify-content-center"
-                                    onClick={() => setPaymentMethod('cash')}
+                            <Col md={6}>
+                                <Form.Label className="small">Payment Method</Form.Label>
+                                <Form.Select
+                                    value={paymentMethod}
+                                    onChange={(e) => setPaymentMethod(e.target.value)}
+                                    size="sm"
                                 >
-                                    <FaMoneyBill className="me-2" /> Cash
-                                </Button>
+                                    <option value="">-- Pay Later / None --</option>
+                                    {paymentMethods.map(m => (
+                                        <option key={m._id} value={m._id}>{m.name}</option>
+                                    ))}
+                                </Form.Select>
                             </Col>
-                            <Col xs={6}>
-                                <Button
-                                    variant={paymentMethod === 'card' ? 'primary' : 'outline-light text-dark border'}
-                                    className="w-100 d-flex align-items-center justify-content-center"
-                                    onClick={() => setPaymentMethod('card')}
-                                >
-                                    <FaCreditCard className="me-2" /> Card
-                                </Button>
-                            </Col>
-                            <Col xs={6}>
-                                <Button
-                                    variant={paymentMethod === 'easypaisa' ? 'primary' : 'outline-light text-dark border'}
-                                    className="w-100 d-flex align-items-center justify-content-center"
-                                    onClick={() => setPaymentMethod('easypaisa')}
-                                >
-                                    <FaMobileAlt className="me-2" /> Easypaisa
-                                </Button>
-                            </Col>
-                            <Col xs={6}>
-                                <Button
-                                    variant={paymentMethod === 'jazzcash' ? 'primary' : 'outline-light text-dark border'}
-                                    className="w-100 d-flex align-items-center justify-content-center"
-                                    onClick={() => setPaymentMethod('jazzcash')}
-                                >
-                                    <FaMobileAlt className="me-2" /> JazzCash
-                                </Button>
+                            <Col md={6}>
+                                <Form.Label className="small">Amount Paid Now</Form.Label>
+                                <Form.Control
+                                    type="number"
+                                    size="sm"
+                                    placeholder={finalTotal}
+                                    value={paidAmount}
+                                    onChange={(e) => setPaidAmount(e.target.value)}
+                                />
                             </Col>
                         </Row>
                     </Form.Group>
 
+                    {balanceDue > 0 && selectedCustomer && (
+                        <Alert variant="warning" className="py-2 px-3 small mb-3">
+                            <strong>Balance Due: Rs {balanceDue.toLocaleString()}</strong> will be added to customer ledger.
+                        </Alert>
+                    )}
+
+                    {balanceDue > 0 && !selectedCustomer && (
+                        <div className="text-danger small mb-3 text-center">
+                            * Select a customer to track pending balance.
+                        </div>
+                    )}
+
                     <Form.Group className="mb-3">
-                        <Form.Label className="small text-muted">Notes (Optional)</Form.Label>
                         <Form.Control
                             as="textarea"
-                            rows={3}
-                            placeholder="Additional notes"
+                            rows={1}
+                            placeholder="Add notes..."
+                            size="sm"
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
                         />
                     </Form.Group>
 
-                    <div className="d-flex justify-content-between mb-2">
-                        <span>Subtotal</span>
-                        <span>Rs {total.toLocaleString()}</span>
-                    </div>
-                    <div className="d-flex justify-content-between mb-3 fw-bold fs-5">
-                        <span>Total</span>
-                        <span>Rs {finalTotal.toLocaleString()}</span>
-                    </div>
-
-                    <Button variant="success" className="w-100 py-2 fw-bold" disabled={cartItems.length === 0} onClick={onCheckout}>
-                        Complete Sale
+                    <Button
+                        variant="primary"
+                        className="w-100 fw-bold py-2"
+                        size="lg"
+                        disabled={cartItems.length === 0}
+                        onClick={onCheckout}
+                    >
+                        <FaCheck className="me-2" /> Complete Sale
                     </Button>
                 </div>
             </Card.Body>

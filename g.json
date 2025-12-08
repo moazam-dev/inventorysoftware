@@ -1,0 +1,246 @@
+[
+    {
+        "_id": "601a1a1a1a1a1a1a1a1a1a01",
+        "date": "2025-01-15",
+        "year": 2025,
+        "month": 1,
+        "day": 15,
+        "totalRevenue": 120000,
+        "totalExpenses": 90000,
+        "totalProfit": 30000,
+        "totalLoss": 0,
+        "itemsSold": 40,
+        "itemsReturned": 2,
+        "transactions": [
+            {
+                "createdAt": "2025-01-15T08:00:00.000+00:00",
+                "updatedAt": "2025-01-15T08:10:00.000+00:00"
+            },
+            {
+                "createdAt": "2025-01-15T10:30:00.000+00:00",
+                "updatedAt": "2025-01-15T10:35:00.000+00:00"
+            }
+        ],
+        "__v": 1
+    },
+    {
+        "_id": "601a1a1a1a1a1a1a1a1a1a02",
+        "date": "2025-02-12",
+        "year": 2025,
+        "month": 2,
+        "day": 12,
+        "totalRevenue": 150000,
+        "totalExpenses": 110000,
+        "totalProfit": 40000,
+        "totalLoss": 0,
+        "itemsSold": 55,
+        "itemsReturned": 1,
+        "transactions": [
+            {
+                "createdAt": "2025-02-12T09:00:00.000+00:00",
+                "updatedAt": "2025-02-12T09:15:00.000+00:00"
+            }
+        ],
+        "__v": 1
+    },
+    {
+        "_id": "601a1a1a1a1a1a1a1a1a1a03",
+        "date": "2025-03-20",
+        "year": 2025,
+        "month": 3,
+        "day": 20,
+        "totalRevenue": 200000,
+        "totalExpenses": 140000,
+        "totalProfit": 60000,
+        "totalLoss": 0,
+        "itemsSold": 65,
+        "itemsReturned": 0,
+        "transactions": [
+            {
+                "createdAt": "2025-03-20T11:00:00.000+00:00",
+                "updatedAt": "2025-03-20T11:05:00.000+00:00"
+            }
+        ],
+        "__v": 1
+    },
+    {
+        "_id": "601a1a1a1a1a1a1a1a1a1a04",
+        "date": "2025-04-10",
+        "year": 2025,
+        "month": 4,
+        "day": 10,
+        "totalRevenue": 180000,
+        "totalExpenses": 160000,
+        "totalProfit": 20000,
+        "totalLoss": 0,
+        "itemsSold": 50,
+        "itemsReturned": 3,
+        "transactions": [
+            {
+                "createdAt": "2025-04-10T12:00:00.000+00:00",
+                "updatedAt": "2025-04-10T12:10:00.000+00:00"
+            }
+        ],
+        "__v": 1
+    },
+    {
+        "_id": "601a1a1a1a1a1a1a1a1a1a05",
+        "date": "2025-05-18",
+        "year": 2025,
+        "month": 5,
+        "day": 18,
+        "totalRevenue": 220000,
+        "totalExpenses": 180000,
+        "totalProfit": 40000,
+        "totalLoss": 0,
+        "itemsSold": 70,
+        "itemsReturned": 2,
+        "transactions": [
+            {
+                "createdAt": "2025-05-18T08:30:00.000+00:00",
+                "updatedAt": "2025-05-18T08:40:00.000+00:00"
+            }
+        ],
+        "__v": 1
+    },
+    {
+        "_id": "601a1a1a1a1a1a1a1a1a1a06",
+        "date": "2025-06-22",
+        "year": 2025,
+        "month": 6,
+        "day": 22,
+        "totalRevenue": 250000,
+        "totalExpenses": 210000,
+        "totalProfit": 40000,
+        "totalLoss": 0,
+        "itemsSold": 75,
+        "itemsReturned": 1,
+        "transactions": [
+            {
+                "createdAt": "2025-06-22T09:30:00.000+00:00",
+                "updatedAt": "2025-06-22T09:50:00.000+00:00"
+            }
+        ],
+        "__v": 1
+    },
+    {
+        "_id": "601a1a1a1a1a1a1a1a1a1a07",
+        "date": "2025-07-08",
+        "year": 2025,
+        "month": 7,
+        "day": 8,
+        "totalRevenue": 210000,
+        "totalExpenses": 160000,
+        "totalProfit": 50000,
+        "totalLoss": 0,
+        "itemsSold": 60,
+        "itemsReturned": 0,
+        "transactions": [
+            {
+                "createdAt": "2025-07-08T07:47:20.695+00:00",
+                "updatedAt": "2025-07-08T07:49:48.739+00:00"
+            }
+        ],
+        "__v": 1
+    },
+    {
+        "_id": "601a1a1a1a1a1a1a1a1a1a08",
+        "date": "2025-08-14",
+        "year": 2025,
+        "month": 8,
+        "day": 14,
+        "totalRevenue": 230000,
+        "totalExpenses": 200000,
+        "totalProfit": 30000,
+        "totalLoss": 0,
+        "itemsSold": 80,
+        "itemsReturned": 0,
+        "transactions": [
+            {
+                "createdAt": "2025-08-14T08:00:00.000+00:00",
+                "updatedAt": "2025-08-14T08:10:00.000+00:00"
+            }
+        ],
+        "__v": 1
+    },
+    {
+        "_id": "601a1a1a1a1a1a1a1a1a1a09",
+        "date": "2025-09-19",
+        "year": 2025,
+        "month": 9,
+        "day": 19,
+        "totalRevenue": 240000,
+        "totalExpenses": 210000,
+        "totalProfit": 30000,
+        "totalLoss": 0,
+        "itemsSold": 85,
+        "itemsReturned": 1,
+        "transactions": [
+            {
+                "createdAt": "2025-09-19T10:00:00.000+00:00",
+                "updatedAt": "2025-09-19T10:15:00.000+00:00"
+            }
+        ],
+        "__v": 1
+    },
+    {
+        "_id": "601a1a1a1a1a1a1a1a1a1a10",
+        "date": "2025-10-21",
+        "year": 2025,
+        "month": 10,
+        "day": 21,
+        "totalRevenue": 260000,
+        "totalExpenses": 220000,
+        "totalProfit": 40000,
+        "totalLoss": 0,
+        "itemsSold": 90,
+        "itemsReturned": 0,
+        "transactions": [
+            {
+                "createdAt": "2025-10-21T09:30:00.000+00:00",
+                "updatedAt": "2025-10-21T09:40:00.000+00:00"
+            }
+        ],
+        "__v": 1
+    },
+    {
+        "_id": "601a1a1a1a1a1a1a1a1a1a11",
+        "date": "2025-11-11",
+        "year": 2025,
+        "month": 11,
+        "day": 11,
+        "totalRevenue": 280000,
+        "totalExpenses": 230000,
+        "totalProfit": 50000,
+        "totalLoss": 0,
+        "itemsSold": 95,
+        "itemsReturned": 0,
+        "transactions": [
+            {
+                "createdAt": "2025-11-11T08:00:00.000+00:00",
+                "updatedAt": "2025-11-11T08:15:00.000+00:00"
+            }
+        ],
+        "__v": 1
+    },
+    {
+        "_id": "601a1a1a1a1a1a1a1a1a1a12",
+        "date": "2025-12-08",
+        "year": 2025,
+        "month": 12,
+        "day": 8,
+        "totalRevenue": 215000,
+        "totalExpenses": 121500,
+        "totalProfit": 93500,
+        "totalLoss": 0,
+        "itemsSold": 62,
+        "itemsReturned": 0,
+        "transactions": [
+            {
+                "createdAt": "2025-12-08T07:02:30.090+00:00",
+                "updatedAt": "2025-12-08T09:10:41.887+00:00"
+            }
+        ],
+        "__v": 1
+    }
+]

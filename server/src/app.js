@@ -27,6 +27,12 @@ app.use('/api/products', productRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/logs', logRoutes);
 app.use('/api/expenses', expenseRoutes);
+app.use('/api/ledger', require('./routes/ledgerRoutes'));
+app.use('/api/analytics', require('./routes/analyticsRoutes'));
+app.use('/api/customers', require('./routes/customerRoutes'));
+app.use('/api/payment-methods', require('./routes/paymentMethodRoutes'));
+app.use('/api/payments', require('./routes/paymentRoutes'));
+
 
 app.get('/', (req, res) => {
     res.send('Inventory API is running...');

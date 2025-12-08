@@ -9,12 +9,47 @@ import InvoicePreview from '../components/checkout/InvoicePreview'
 const Checkout = () => {
     const [cartItems, setCartItems] = useState([]);
     const [discount, setDiscount] = useState(0);
+
+    // New State for Pay Later / Customer Tracking
+    const [customers, setCustomers] = useState([]);
+    const [paymentMethods, setPaymentMethods] = useState([]);
+    const [selectedCustomer, setSelectedCustomer] = useState(''); // Customer ID
+    const [paidAmount, setPaidAmount] = useState(''); // Amount paying NOW
+
+    // Legacy/Fallback state (if Walk-in)
     const [customer, setCustomer] = useState({ name: '', phone: '' });
-    const [paymentMethod, setPaymentMethod] = useState('cash');
+
+    const [paymentMethod, setPaymentMethod] = useState(''); // ID now
     const [notes, setNotes] = useState('');
     const [showInvoice, setShowInvoice] = useState(false);
     const [invoiceData, setInvoiceData] = useState(null);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+    const API_URL = 'http://localhost:5000/api';
+
+    React.useEffect(() => {
+        fetchCustomers();
+        fetchPaymentMethods();
+    }, []);
+
+    const fetchCustomers = async () => {
+        try {
+            const res = await axios.get(`${API_URL}/customers`);
+            if (res.data.success) setCustomers(res.data.data);
+        } catch (err) { console.error(err); }
+    };
+
+    const fetchPaymentMethods = async () => {
+        try {
+            const res = await axios.get(`${API_URL}/payment-methods`);
+            if (res.data.success) {
+                setPaymentMethods(res.data.data);
+                // Set default cash
+                const cash = res.data.data.find(m => m.type === 'cash');
+                if (cash) setPaymentMethod(cash._id);
+            }
+        } catch (err) { console.error(err); }
+    };
 
     const handleAddToCart = (product) => {
         const existingItem = cartItems.find(item => item.product === product._id);
@@ -66,9 +101,11 @@ const Checkout = () => {
             const payload = {
                 items: cartItems.map(item => ({ product: item.product, quantity: item.qty })),
                 discount,
-                partyName: customer.name,
+                partyName: customer.name || (selectedCustomer ? customers.find(c => c._id === selectedCustomer)?.name : 'Walk-in Customer'),
+                customerId: selectedCustomer || undefined,
                 partyPhone: customer.phone,
-                paymentMethod,
+                paymentMethod, // ObjectId
+                paidAmount: paidAmount === '' ? calculateTotal() - discount : Number(paidAmount),
                 notes: notes || 'Sale via Checkout'
             };
 
@@ -81,6 +118,8 @@ const Checkout = () => {
                 setCartItems([]);
                 setDiscount(0);
                 setCustomer({ name: '', phone: '' });
+                setSelectedCustomer('');
+                setPaidAmount('');
                 setNotes('');
                 setRefreshTrigger(prev => prev + 1); // Trigger product list refresh
             }
@@ -90,17 +129,23 @@ const Checkout = () => {
         }
     };
 
+
+
+    const totalAmount = calculateTotal() - discount;
+    const payingNow = paidAmount === '' ? totalAmount : Number(paidAmount);
+    const pendingBalance = totalAmount - payingNow;
+
     return (
-        <div className="container-fluid p-4" style={{ height: 'calc(100vh - 60px)' }}>
+        <div className="container-fluid p-4 no-print">
             <div className="mb-3">
                 <h2 className="fw-bold">Checkout</h2>
             </div>
 
-            <Row className="h-100 g-4">
-                <Col md={7} className="h-100">
+            <Row className="g-4">
+                <Col md={7}>
                     <ProductSelector onAddToCart={handleAddToCart} refreshTrigger={refreshTrigger} />
                 </Col>
-                <Col md={5} className="h-100">
+                <Col md={5}>
                     <Cart
                         cartItems={cartItems}
                         onRemove={handleRemoveItem}
@@ -109,8 +154,22 @@ const Checkout = () => {
                         total={calculateTotal()}
                         discount={discount}
                         setDiscount={setDiscount}
+                        pendingBalance={pendingBalance} // Pass pending balance to Cart UI if needed, or Cart.jsx handles it?
+                        // Cart.jsx handles the input. Let's pass the raw total to help it calculate warnings.
+                        grandTotal={totalAmount}
+
+                        // New Props
+                        customers={customers}
+                        paymentMethods={paymentMethods}
+                        selectedCustomer={selectedCustomer}
+                        setSelectedCustomer={setSelectedCustomer}
+                        paidAmount={paidAmount}
+                        setPaidAmount={setPaidAmount}
+
+                        // Fallback/Legacy
                         customer={customer}
                         setCustomer={setCustomer}
+
                         paymentMethod={paymentMethod}
                         setPaymentMethod={setPaymentMethod}
                         notes={notes}

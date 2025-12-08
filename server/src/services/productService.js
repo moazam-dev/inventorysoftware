@@ -41,47 +41,36 @@ exports.createProduct = async (data) => {
     // 1. Create Product
     const product = await Product.create(data);
 
-    // 2. Create Expense for Stock Purchase
-    try {
-        if (product.quantity > 0 && product.costPrice > 0) {
-            const totalCost = product.quantity * product.costPrice;
-            await Expense.create({
-                title: `Stock Purchase: ${product.name}`,
-                amount: totalCost,
-                category: 'Stock Purchase',
-                date: new Date(),
-                notes: `Initial stock of ${product.quantity} units`
-            });
-            await logService.updateDailyLog(new Date(), 'expense', totalCost);
-        }
-    } catch (err) {
-        console.error('Error auto-creating expense (suppressed):', err);
-        // Suppress error so product creation succeeds
-    }
+    // 2. Old Expense Logic - REMOVED
+    // We now handle initial stock via transactionService.createPurchase in the controller if needed.
+    // Or simpler: we keep createProduct simple, and if the user wants initial stock + payment,
+    // the controller will handle the Purchase transaction.
+    // However, if we just pass 'quantity' here, it sets the initial stock.
+    // Ideally, createProduct should just set stock to 0 if we want to force a Purchase?
+    // No, we can set initial stock here, but we MUST NOT create an expense here.
+    // The controller will call createPurchase which updates stock.
+    // So here we should likely force quantity to 0 if we are doing the purchase flow?
+    // Let's just remove the expense logic.
+
+    // Actually, if we pass quantity here, standard create(data) sets it.
+    // If the controller calls createPurchase, that ADDS to the stock.
+    // So if create(data) sets it to 10, and createPurchase adds 10, we get 20.
+    // So we should delete quantity from data before creating if we plan to use createPurchase.
+
+    // But modifying data here is implicit.
+    // Best practice: Controller handles the orchestration.
+    // Service just creates what it's told.
+    // So we remove the side-effect (Expense Creation).
 
     return product;
 };
 
 exports.updateProduct = async (id, data) => {
     // Check for stock increase
-    if (data.quantity !== undefined) {
-        const currentProduct = await Product.findById(id);
-        if (currentProduct && data.quantity > currentProduct.quantity) {
-            const addedQty = data.quantity - currentProduct.quantity;
-            const costPrice = data.costPrice !== undefined ? data.costPrice : currentProduct.costPrice;
-
-            if (costPrice > 0) {
-                const addedCost = addedQty * costPrice;
-                await Expense.create({
-                    title: `Stock Update: ${currentProduct.name}`,
-                    amount: addedCost,
-                    category: 'Stock Purchase',
-                    date: new Date(),
-                    notes: `Added ${addedQty} units`
-                });
-                await logService.updateDailyLog(new Date(), 'expense', addedCost);
-            }
-        }
+    // NOTE: Expense creation for restock is now handled by transactionService.createPurchase
+    // We only update product fields here.
+    if (data.quantity !== undefined && data.quantity > 0) {
+        // Just standard update, no side effects here anymore.
     }
 
     // Handle empty SKU for update as well

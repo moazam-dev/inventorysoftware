@@ -31,16 +31,23 @@ const transactionSchema = new mongoose.Schema({
         default: 0
     },
     partyName: {
-        type: String, // Customer or Supplier name
+        type: String, // Supplier name or Walk-in Customer name
         default: 'Walk-in Customer'
+    },
+    customer: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Customer'
     },
     partyPhone: {
         type: String
     },
     paymentMethod: {
-        type: String,
-        enum: ['cash', 'card', 'online'],
-        default: 'cash'
+        type: mongoose.Schema.Types.ObjectId, // Link to PaymentMethod model
+        ref: 'PaymentMethod'
+    },
+    paidAmount: {
+        type: Number,
+        default: 0
     },
     date: {
         type: Date,

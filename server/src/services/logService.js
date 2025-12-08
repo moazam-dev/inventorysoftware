@@ -120,13 +120,20 @@ exports.getDayDetails = async (year, month, day) => {
         }
     });
 
-    const calcProfit = (calcRevenue - calcExpenses) > 0 ? (calcRevenue - calcExpenses) : 0;
-    const calcLoss = (calcRevenue - calcExpenses) < 0 ? (calcExpenses - calcRevenue) : 0;
+    // Ensure revenue and expenses never go negative
+    calcRevenue = Math.max(0, calcRevenue);
+    calcExpenses = Math.max(0, calcExpenses);
+
+    // Calculate profit/loss properly
+    const netResult = calcRevenue - calcExpenses;
+    const calcProfit = netResult >= 0 ? netResult : 0;
+    const calcLoss = netResult < 0 ? Math.abs(netResult) : 0;
+
     return {
-        totalRevenue: calcRevenue,
-        totalExpenses: calcExpenses,
-        totalProfit: calcProfit,
-        totalLoss: calcLoss,
+        totalRevenue: Math.max(0, calcRevenue),
+        totalExpenses: Math.max(0, calcExpenses),
+        totalProfit: Math.max(0, calcProfit),
+        totalLoss: Math.max(0, calcLoss),
         transactions: mergedList
     };
 };
@@ -153,13 +160,11 @@ exports.updateDailyLog = async (dateObj, type, amount, itemCount = 0, transactio
         log.itemsSold += itemCount;
     } else if (type === 'expense' || type === 'purchase') {
         log.totalExpenses += amount;
-        log.totalProfit -= amount;
     } else if (type === 'return_from_customer') {
-        log.totalRevenue -= amount;
+        log.totalRevenue = Math.max(0, log.totalRevenue - amount);
         log.itemsReturned += itemCount;
     } else if (type === 'return_to_supplier') {
-        log.totalExpenses -= amount;
-        log.totalProfit += amount;
+        log.totalExpenses = Math.max(0, log.totalExpenses - amount);
     }
 
     if (transactionId) {
@@ -168,7 +173,18 @@ exports.updateDailyLog = async (dateObj, type, amount, itemCount = 0, transactio
         }
     }
 
-    log.totalProfit = (log.totalRevenue - log.totalExpenses) > 0 ? (log.totalRevenue - log.totalExpenses) : 0;
+    // Recalculate profit/loss ensuring no negative values
+    log.totalRevenue = Math.max(0, log.totalRevenue);
+    log.totalExpenses = Math.max(0, log.totalExpenses);
+
+    const netResult = log.totalRevenue - log.totalExpenses;
+    if (netResult >= 0) {
+        log.totalProfit = netResult;
+        log.totalLoss = 0;
+    } else {
+        log.totalProfit = 0;
+        log.totalLoss = Math.abs(netResult);
+    }
     log.totalLoss = (log.totalRevenue - log.totalExpenses) < 0 ? (log.totalExpenses - log.totalRevenue) : 0;
 
     await log.save();

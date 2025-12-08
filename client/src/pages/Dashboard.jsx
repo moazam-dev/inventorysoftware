@@ -4,9 +4,9 @@ import { FaMoneyBillWave, FaWallet, FaShoppingCart, FaExclamationCircle } from '
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import KPICard from '../components/dashboard/KPICard'
-import RevenueChart from '../components/dashboard/RevenueChart'
-import StockChart from '../components/dashboard/StockChart'
-import InsightsPanel from '../components/dashboard/InsightsPanel'
+import ProfitExpenseChart from '../components/dashboard/RevenueChart'
+import TopProductsChart from '../components/dashboard/TopProductsChart'
+import CategoryPerformanceChart from '../components/dashboard/CategoryPerformanceChart'
 
 const Dashboard = () => {
     const [loading, setLoading] = useState(true);
@@ -16,29 +16,33 @@ const Dashboard = () => {
         monthlyExpenses: 0,
         monthlyLoss: 0
     });
-    const [stockData, setStockData] = useState([]);
-    const [trendData, setTrendData] = useState(null);
+    const [topProducts, setTopProducts] = useState([]);
+    const [categoryPerformance, setCategoryPerformance] = useState([]);
+    const [salesTrends, setSalesTrends] = useState([]);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // In a real app, use an environment variable for API URL
                 const API_URL = 'http://localhost:5000/api';
 
-                const [summaryRes, stockRes, trendRes] = await Promise.all([
+                const [summaryRes, topProductsRes, categoryRes, trendsRes] = await Promise.all([
                     axios.get(`${API_URL}/dashboard/summary`),
-                    axios.get(`${API_URL}/dashboard/stock`),
-                    axios.get(`${API_URL}/dashboard/trend`)
+                    axios.get(`${API_URL}/analytics/top-products`),
+                    axios.get(`${API_URL}/analytics/category-performance`),
+                    axios.get(`${API_URL}/analytics/sales-trends`)
                 ]);
 
                 if (summaryRes.data.success) {
                     setSummary(summaryRes.data.data);
                 }
-                if (stockRes.data.success) {
-                    setStockData(stockRes.data.data);
+                if (topProductsRes.data.success) {
+                    setTopProducts(topProductsRes.data.data);
                 }
-                if (trendRes.data.success) {
-                    setTrendData(trendRes.data.data);
+                if (categoryRes.data.success) {
+                    setCategoryPerformance(categoryRes.data.data);
+                }
+                if (trendsRes.data.success) {
+                    setSalesTrends(trendsRes.data.data);
                 }
             } catch (error) {
                 console.error('Error fetching dashboard data:', error);
@@ -67,14 +71,13 @@ const Dashboard = () => {
             </div>
 
             {/* KPI Cards */}
-            <Row className="g-4 mb-4">
+            <Row className="g-3 mb-4">
                 <Col md={3}>
                     <KPICard
                         title="Monthly Revenue"
                         value={`Rs ${summary.monthlyRevenue.toLocaleString()}`}
                         icon={<FaMoneyBillWave size={24} />}
                         color="success"
-                        trend={10.4} // Placeholder trend
                     />
                 </Col>
                 <Col md={3}>
@@ -83,7 +86,6 @@ const Dashboard = () => {
                         value={`Rs ${summary.monthlyProfit.toLocaleString()}`}
                         icon={<FaWallet size={24} />}
                         color="primary"
-                        trend={5.2}
                     />
                 </Col>
                 <Col md={3}>
@@ -92,7 +94,6 @@ const Dashboard = () => {
                         value={`Rs ${summary.monthlyExpenses.toLocaleString()}`}
                         icon={<FaShoppingCart size={24} />}
                         color="warning"
-                        trend={-2.1}
                     />
                 </Col>
                 <Col md={3}>
@@ -101,23 +102,25 @@ const Dashboard = () => {
                         value={`Rs ${summary.monthlyLoss.toLocaleString()}`}
                         icon={<FaExclamationCircle size={24} />}
                         color="danger"
-                        trend={0}
                     />
                 </Col>
             </Row>
 
             {/* Charts */}
-            <Row className="g-4 mb-4">
-                <Col lg={8}>
-                    <RevenueChart data={trendData} />
-                </Col>
-                <Col lg={4}>
-                    <StockChart data={stockData} />
+            <Row className="g-4 mt-2">
+                <Col lg={12}>
+                    <ProfitExpenseChart data={salesTrends} />
                 </Col>
             </Row>
 
-            {/* Insights */}
-            <InsightsPanel />
+            <Row className="g-4 mt-2">
+                <Col lg={6}>
+                    <TopProductsChart data={topProducts} />
+                </Col>
+                <Col lg={6}>
+                    <CategoryPerformanceChart data={categoryPerformance} />
+                </Col>
+            </Row>
         </div>
     )
 }

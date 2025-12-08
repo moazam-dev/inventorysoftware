@@ -4,6 +4,7 @@
   --accent-color: #00cec9;
   --bg-color: #f8f9fa;
   --text-color: #2d3436;
+  --sidebar-bg: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
 }
 
 body {
@@ -12,30 +13,183 @@ body {
   color: var(--text-color);
 }
 
-.active-nav-item {
-  background-color: var(--primary-color) !important;
-  color: white !important;
-  border-radius: 0.5rem;
-  margin: 0 10px;
+/* Enhanced Sidebar Styling */
+.sidebar {
+  background: var(--sidebar-bg);
+  min-height: 100vh;
+  position: sticky;
+  top: 0;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
 }
 
+.sidebar-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.sidebar-header h5 {
+  color: white;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.sidebar-header small {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Nav Items */
+.nav-item-custom {
+  color: rgba(255, 255, 255, 0.8);
+  padding: 0.75rem 1.25rem;
+  margin: 0.25rem 0.75rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+}
+
+.nav-item-custom:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  transform: translateX(5px);
+}
+
+.active-nav-item {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  color: white !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  font-weight: 600;
+}
+
+/* Card Enhancements */
 .card {
   border: none;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .card:hover {
   transform: translateY(-2px);
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
 }
 
+/* Button Enhancements */
 .btn-primary {
   background-color: var(--primary-color);
   border-color: var(--primary-color);
+  transition: all 0.3s ease;
 }
 
 .btn-primary:hover {
   background-color: var(--secondary-color);
   border-color: var(--secondary-color);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(108, 92, 231, 0.3);
+}
+
+/* Hide scrollbar for product selector */
+.product-selector-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* ========================================
+   PRINT STYLES - Invoice Only
+   ======================================== */
+@media print {
+
+  /* Hide unwanted elements */
+  .no-print,
+  .modal-backdrop,
+  .modal-header,
+  .modal-footer,
+  .sidebar,
+  nav,
+  header,
+  footer,
+  button,
+  .btn,
+  .Toastify,
+  .toast,
+  .toast-container {
+    display: none !important;
+  }
+
+  /* Force show and position modal */
+  .modal {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    display: block !important;
+    z-index: 9999 !important;
+  }
+
+  .modal-dialog {
+    max-width: 100% !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  .modal-content {
+    border: none !important;
+    box-shadow: none !important;
+    background: white !important;
+    display: block !important;
+  }
+
+  .modal-body {
+    padding: 20px !important;
+    display: block !important;
+  }
+
+  /* Explicitly show printable invoice */
+  .printable-invoice {
+    display: block !important;
+    visibility: visible !important;
+  }
+
+  /* Optimize for receipt-sized paper */
+  @page {
+    size: A5 portrait;
+    margin: 10mm;
+  }
+
+  /* Ensure proper text rendering */
+  body {
+    font-size: 11pt;
+    line-height: 1.3;
+    color: #000;
+    background: white;
+  }
+
+  /* Make tables print-friendly */
+  table {
+    page-break-inside: avoid;
+    width: 100%;
+  }
+
+  /* Ensure borders print */
+  table,
+  th,
+  td {
+    border: 1px solid #000 !important;
+    padding: 8px !important;
+  }
+
+  /* Ensure text is black for printing */
+  * {
+    color: #000 !important;
+  }
+
+  /* Remove background colors except for table headers */
+  * {
+    background: transparent !important;
+  }
+
+  thead {
+    background: #f0f0f0 !important;
+  }
 }

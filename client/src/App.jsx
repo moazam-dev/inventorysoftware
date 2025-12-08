@@ -7,6 +7,7 @@ import Inventory from './pages/Inventory'
 import Checkout from './pages/Checkout'
 import Logs from './pages/Logs'
 import Expenses from './pages/Expenses'
+import Payments from './pages/Payments'
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           <Route index element={<Dashboard />} />
           <Route path="inventory" element={<Inventory />} />
           <Route path="checkout" element={<Checkout />} />
+          <Route path="payments" element={<Payments />} />
           <Route path="expenses" element={<Expenses />} />
           <Route path="logs" element={<Logs />} />
         </Route>

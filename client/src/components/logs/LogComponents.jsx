@@ -98,9 +98,9 @@ export const DayCard = ({ date, transactionsCount, revenue, profit, onClick }) =
     );
 };
 
-export const HeaderStats = ({ revenue, profit, expenses, loss , selectedMonth,selectedDay}) => {
+export const HeaderStats = ({ revenue, profit, expenses, loss, selectedMonth, selectedDay }) => {
     console.log(selectedDay);
-    
+
     return (
         <Row className="g-3 mb-4">
             <Col md={3}>
@@ -198,6 +198,19 @@ export const TransactionRow = ({ transaction }) => {
                     <h6 className="fw-bold mb-1">
                         {transaction.description || transaction.partyName || 'Transaction'}
                     </h6>
+
+                    {/* Items Detail */}
+                    {transaction.items && transaction.items.length > 0 && (
+                        <div className="text-muted small mb-1">
+                            {transaction.items.map((item, i) => (
+                                <span key={i} className="me-2">
+                                    <FaBox size={10} className="me-1" />
+                                    {item.productName || item.product?.name} ({item.quantity})
+                                </span>
+                            ))}
+                        </div>
+                    )}
+
                     <Badge bg="light" text="dark" className="border fw-normal">
                         {transaction.type.replace(/_/g, ' ').toUpperCase()}
                     </Badge>

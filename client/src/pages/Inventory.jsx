@@ -9,7 +9,9 @@ import StockActions from '../components/inventory/StockActions'
 import CategoryForm from '../components/inventory/CategoryForm'
 import RestockModal from '../components/inventory/RestockModal'
 import ReturnSupplierModal from '../components/inventory/ReturnSupplierModal'
+
 import ReturnCustomerModal from '../components/inventory/ReturnCustomerModal'
+import BulkProductModal from '../components/inventory/BulkProductModal'
 
 const Inventory = () => {
     const [products, setProducts] = useState([]);
@@ -19,7 +21,9 @@ const Inventory = () => {
     const [showCategoryForm, setShowCategoryForm] = useState(false);
     const [showRestockModal, setShowRestockModal] = useState(false);
     const [showReturnSupplierModal, setShowReturnSupplierModal] = useState(false);
+
     const [showReturnCustomerModal, setShowReturnCustomerModal] = useState(false);
+    const [showBulkModal, setShowBulkModal] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState('products');
@@ -124,6 +128,9 @@ const Inventory = () => {
                 <div className="d-flex gap-2">
                     <Button variant="outline-dark" className="d-flex align-items-center" onClick={() => setShowCategoryForm(true)}>
                         <FaPlus className="me-2" /> Add Category
+                    </Button>
+                    <Button variant="outline-primary" className="d-flex align-items-center" onClick={() => setShowBulkModal(true)}>
+                        <FaPlus className="me-2" /> Bulk Add
                     </Button>
                     <Button variant="primary" className="d-flex align-items-center" onClick={handleAddProduct}>
                         <FaPlus className="me-2" /> Add Product
@@ -263,6 +270,12 @@ const Inventory = () => {
                 show={showReturnCustomerModal}
                 onHide={() => setShowReturnCustomerModal(false)}
                 onReturnComplete={fetchData}
+            />
+
+            <BulkProductModal
+                show={showBulkModal}
+                onHide={() => setShowBulkModal(false)}
+                onSuccess={fetchData}
             />
         </div>
     )

@@ -11,10 +11,10 @@ const InvoicePreview = ({ show, onHide, invoiceData }) => {
 
     return (
         <Modal show={show} onHide={onHide} size="lg" centered>
-            <Modal.Header closeButton>
+            <Modal.Header closeButton className="no-print">
                 <Modal.Title>Invoice Generated</Modal.Title>
             </Modal.Header>
-            <Modal.Body className="p-4" id="invoice-print-area">
+            <Modal.Body className="p-4 printable-invoice" id="invoice-print-area">
                 <div className="text-center mb-4">
                     <h3 className="fw-bold">Elegance Boutique</h3>
                     <p className="text-muted mb-0">Women's Clothing & Accessories</p>
@@ -77,7 +77,7 @@ const InvoicePreview = ({ show, onHide, invoiceData }) => {
                     <p>No returns without receipt. Exchange within 7 days.</p>
                 </div>
             </Modal.Body>
-            <Modal.Footer>
+            <Modal.Footer className="no-print">
                 <Button variant="secondary" onClick={onHide}>Close</Button>
                 <Button variant="primary" onClick={handlePrint}>
                     <FaPrint className="me-2" /> Print Invoice

@@ -21,6 +21,24 @@ exports.getTransaction = async (req, res, next) => {
     }
 };
 
+exports.getTransactions = async (req, res, next) => {
+    try {
+        const transactions = await transactionService.getAllTransactions(req.query);
+        res.json({ success: true, data: transactions });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.createPurchase = async (req, res, next) => {
+    try {
+        const transaction = await transactionService.createPurchase(req.body);
+        res.status(201).json({ success: true, data: transaction });
+    } catch (error) {
+        next(error);
+    }
+};
+
 exports.returnToSupplier = async (req, res, next) => {
     try {
         const transaction = await transactionService.createReturnToSupplier(req.body);

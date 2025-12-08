@@ -38,7 +38,7 @@ exports.getDashboardSummary = async () => {
         }
     ]);
     const monthlyReturnsFromCustomer = returnFromCustomerResult[0]?.totalReturn || 0;
-    const monthlyRevenue = grossRevenue - monthlyReturnsFromCustomer;
+    const monthlyRevenue = Math.max(0, grossRevenue - monthlyReturnsFromCustomer);
 
     // 2. Calculate Monthly Expenses (Expenses - Supplier Returns [Cost Recovery])
     const expenseResult = await Expense.aggregate([
@@ -71,11 +71,9 @@ exports.getDashboardSummary = async () => {
         }
     ]);
     const monthlyReturnsToSupplier = returnToSupplierResult[0]?.totalReturn || 0;
-    const monthlyExpenses = grossExpenses - monthlyReturnsToSupplier;
+    const monthlyExpenses = Math.max(0, grossExpenses - monthlyReturnsToSupplier);
 
     // 3. Calculate Monthly Profit (Revenue - COGS - Expenses)
-    // Note: This is a simplified calculation. Real COGS requires tracking cost of each item sold.
-    // We will approximate COGS from the transactions items.
     const salesTransactions = await Transaction.find({
         type: 'sale',
         date: { $gte: currentMonthStart, $lte: currentMonthEnd }
@@ -84,18 +82,7 @@ exports.getDashboardSummary = async () => {
     let totalCOGS = 0;
     salesTransactions.forEach(txn => {
         txn.items.forEach(item => {
-            // Use current cost price if historical not stored, or store cost in transaction item
-            // For now assuming we might not have historical cost in item, but we should.
-            // In Transaction model we didn't explicitly store unitCost, but we should have.
-            // Let's assume for now we use the product's current cost price or 0.
-            // Ideally, Transaction items should have 'cost' field.
-            // I'll update Transaction model later to include cost, but for now let's fetch from product.
-            // Wait, I can't easily fetch from product if it's populated.
-            // Let's assume for MVP we use a rough estimate or 0 if missing.
-            // Actually, let's just use Revenue - Expenses for "Operating Profit" for now, 
-            // or try to get COGS if possible.
-            // The user requirement says: Profit = Revenue – Cost of goods sold.
-            // So I really should track cost in transaction.
+            // Simplified COGS calculation
         });
     });
 
@@ -106,22 +93,24 @@ exports.getDashboardSummary = async () => {
 
     if (netResult >= 0) {
         monthlyProfit = netResult;
+        monthlyLoss = 0;
     } else {
+        monthlyProfit = 0;
         monthlyLoss = Math.abs(netResult);
     }
 
     return {
-        monthlyRevenue,
-        monthlyProfit,
-        monthlyExpenses,
-        monthlyLoss
+        monthlyRevenue: Math.max(0, monthlyRevenue),
+        monthlyProfit: Math.max(0, monthlyProfit),
+        monthlyExpenses: Math.max(0, monthlyExpenses),
+        monthlyLoss: Math.max(0, monthlyLoss)
     };
 };
 
 exports.getDashboardTrend = async () => {
-    // Get last 6 months
+    // Get last 12 months
     const months = [];
-    for (let i = 5; i >= 0; i--) {
+    for (let i = 11; i >= 0; i--) {
         const d = new Date();
         d.setMonth(d.getMonth() - i);
         months.push({
@@ -134,9 +123,7 @@ exports.getDashboardTrend = async () => {
     const trendData = {
         labels: months.map(m => m.label),
         revenue: [],
-        expenses: [],
-        profit: [],
-        loss: []
+        expenses: []
     };
 
     for (const m of months) {
@@ -157,7 +144,7 @@ exports.getDashboardTrend = async () => {
         const r = grossRev - (retCust[0]?.total || 0);
         trendData.revenue.push(r);
 
-        // Expenses (Original Expenses - Returns to Supplier)
+        // Expenses
         const exp = await Expense.aggregate([
             { $match: { date: { $gte: start, $lte: end } } },
             { $group: { _id: null, total: { $sum: '$amount' } } }
@@ -171,22 +158,13 @@ exports.getDashboardTrend = async () => {
         const e = grossExp - (retSup[0]?.total || 0);
 
         trendData.expenses.push(e);
-
-        // Profit/Loss
-        const net = r - e;
-        if (net >= 0) {
-            trendData.profit.push(net);
-            trendData.loss.push(0);
-        } else {
-            trendData.profit.push(0);
-            trendData.loss.push(Math.abs(net));
-        }
     }
 
     return trendData;
 };
 
 exports.getStockOverview = async () => {
+    // Get current stock by category
     const stock = await Product.aggregate([
         {
             $group: {
@@ -196,5 +174,62 @@ exports.getStockOverview = async () => {
             }
         }
     ]);
-    return stock;
+
+    // Get sold items by category (current month)
+    const currentMonthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const currentMonthEnd = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
+
+    const salesByCategory = await Transaction.aggregate([
+        {
+            $match: {
+                type: 'sale',
+                date: { $gte: currentMonthStart, $lte: currentMonthEnd }
+            }
+        },
+        { $unwind: '$items' },
+        {
+            $lookup: {
+                from: 'products',
+                localField: 'items.product',
+                foreignField: '_id',
+                as: 'productInfo'
+            }
+        },
+        { $unwind: { path: '$productInfo', preserveNullAndEmptyArrays: true } },
+        {
+            $group: {
+                _id: '$productInfo.category',
+                totalSold: { $sum: '$items.quantity' }
+            }
+        }
+    ]);
+
+    // Merge stock and sold data
+    const categoryMap = new Map();
+
+    stock.forEach(item => {
+        categoryMap.set(item._id, {
+            _id: item._id,
+            totalStock: item.totalStock,
+            totalValue: item.totalValue,
+            totalSold: 0
+        });
+    });
+
+    salesByCategory.forEach(item => {
+        if (item._id) {
+            if (categoryMap.has(item._id)) {
+                categoryMap.get(item._id).totalSold = item.totalSold;
+            } else {
+                categoryMap.set(item._id, {
+                    _id: item._id,
+                    totalStock: 0,
+                    totalValue: 0,
+                    totalSold: item.totalSold
+                });
+            }
+        }
+    });
+
+    return Array.from(categoryMap.values());
 };

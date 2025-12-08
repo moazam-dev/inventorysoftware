@@ -9,10 +9,20 @@ const RestockModal = ({ show, onHide, onStockAdded }) => {
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [quantity, setQuantity] = useState('');
     const [costPrice, setCostPrice] = useState('');
+    const [supplier, setSupplier] = useState('');
     const [loading, setLoading] = useState(false);
     const [searching, setSearching] = useState(false);
 
+    // Payment State
+    const [paymentMethods, setPaymentMethods] = useState([]);
+    const [paidAmount, setPaidAmount] = useState('');
+    const [selectedMethod, setSelectedMethod] = useState('');
+
     const API_URL = 'http://localhost:5000/api';
+
+    useEffect(() => {
+        fetchPaymentMethods();
+    }, []);
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
@@ -25,6 +35,20 @@ const RestockModal = ({ show, onHide, onStockAdded }) => {
 
         return () => clearTimeout(delayDebounceFn);
     }, [searchTerm, selectedProduct]);
+
+    const fetchPaymentMethods = async () => {
+        try {
+            const res = await axios.get(`${API_URL}/payment-methods`);
+            if (res.data.success) {
+                setPaymentMethods(res.data.data);
+                // Default to 'cash' if available
+                const cash = res.data.data.find(m => m.type === 'cash');
+                if (cash) setSelectedMethod(cash._id);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
     const searchProducts = async () => {
         try {
@@ -45,6 +69,8 @@ const RestockModal = ({ show, onHide, onStockAdded }) => {
         setSearchTerm(product.name);
         setSearchResults([]);
         setCostPrice(product.costPrice); // Pre-fill current cost price
+        setSupplier(product.supplier || ''); // Pre-fill supplier if exists
+        setPaidAmount(''); // Reset paid amount
     };
 
     const handleClearSelection = () => {
@@ -52,7 +78,10 @@ const RestockModal = ({ show, onHide, onStockAdded }) => {
         setSearchTerm('');
         setSearchResults([]);
         setQuantity('');
-        setCostPrice('');
+        // setCostPrice(''); // Keep cost price? No, clear it.
+        // setSupplier('');
+        setPaidAmount('');
+        setSelectedMethod('');
     };
 
     const handleSubmit = async (e) => {
@@ -61,19 +90,19 @@ const RestockModal = ({ show, onHide, onStockAdded }) => {
 
         try {
             setLoading(true);
-            // We use the update product endpoint.
-            // Logic: we pass the NEW total quantity = current + added.
-            // But wiat, the backend update logic for Expenses (in productService.js) calculates the difference.
-            // So if I send the NEW total quantity, it will see the increase and create an expense.
-            // Correct.
 
-            const newQuantity = parseInt(selectedProduct.quantity) + parseInt(quantity);
+            // New Purchase API
+            const payload = {
+                product: selectedProduct._id,
+                quantity: Number(quantity),
+                costPrice: Number(costPrice),
+                supplier: supplier,
+                paidAmount: Number(paidAmount),
+                paymentMethod: selectedMethod || undefined,
+                notes: `Restock via Inventory`
+            };
 
-            // We also might update costPrice if it changed.
-            await axios.put(`${API_URL}/products/${selectedProduct._id}`, {
-                quantity: newQuantity,
-                costPrice: parseFloat(costPrice)
-            });
+            await axios.post(`${API_URL}/transactions/purchase`, payload);
 
             toast.success(`Restocked ${selectedProduct.name} successfully`);
             onStockAdded();
@@ -164,9 +193,54 @@ const RestockModal = ({ show, onHide, onStockAdded }) => {
                                 </Form.Text>
                             </Form.Group>
 
+                            <Form.Group className="mb-3">
+                                <Form.Label>Supplier Name (Optional)</Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    value={supplier}
+                                    onChange={(e) => setSupplier(e.target.value)}
+                                    placeholder="Enter supplier name for ledger tracking"
+                                />
+                            </Form.Group>
+
                             <div className="alert alert-info">
                                 Total Cost: <strong>Rs. {((parseFloat(quantity) || 0) * (parseFloat(costPrice) || 0)).toFixed(2)}</strong>
                             </div>
+
+                            <hr />
+                            <h6 className="fw-bold">Payment Details</h6>
+
+                            <Form.Group className="mb-3">
+                                <Form.Label>Payment Method</Form.Label>
+                                <Form.Select
+                                    value={selectedMethod}
+                                    onChange={(e) => setSelectedMethod(e.target.value)}
+                                >
+                                    <option value="">-- Pay Later / None --</option>
+                                    {paymentMethods.map(m => (
+                                        <option key={m._id} value={m._id}>{m.name} ({m.type})</option>
+                                    ))}
+                                </Form.Select>
+                            </Form.Group>
+
+                            <Form.Group className="mb-3">
+                                <Form.Label>Amount Paid Now</Form.Label>
+                                <Form.Control
+                                    type="number"
+                                    min="0"
+                                    value={paidAmount}
+                                    onChange={(e) => setPaidAmount(e.target.value)}
+                                    placeholder="Enter amount paid"
+                                />
+                                <Form.Text className="text-muted">
+                                    Leave empty or 0 if paying later.
+                                    {((parseFloat(quantity) || 0) * (parseFloat(costPrice) || 0)) - (parseFloat(paidAmount) || 0) > 0 && (
+                                        <span className="text-danger ms-2">
+                                            (Balance Pending: Rs {(((parseFloat(quantity) || 0) * (parseFloat(costPrice) || 0)) - (parseFloat(paidAmount) || 0)).toLocaleString()})
+                                        </span>
+                                    )}
+                                </Form.Text>
+                            </Form.Group>
                         </>
                     )}
 

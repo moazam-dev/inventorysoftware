@@ -16,6 +16,10 @@ const expenseSchema = new mongoose.Schema({
         required: true, // e.g., Rent, Utilities, Salary
         index: true
     },
+    supplier: {
+        type: String,
+        index: true
+    },
     date: {
         type: Date,
         default: Date.now

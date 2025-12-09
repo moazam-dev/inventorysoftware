@@ -21,16 +21,13 @@ const Expenses = () => {
         try {
             setLoading(true);
             const [transRes, expRes] = await Promise.all([
-                axios.get(`${API_URL}/transactions?type=purchase`),
+                axios.get(`${API_URL}/payments?type=pay_supplier`),
                 axios.get(`${API_URL}/expenses`)
             ]);
 
             if (transRes.data.success) {
-                // Filter purchases: Only show if paidAmount > 0 (as per user request: "if i bought something and didnt pay for should bot be added")
-                // Also usually we want to see history, but strict cash basis request implies showing only what moved cash.
-                // However, user said "should not be added in purchased section".
-                const paidPurchases = transRes.data.data.filter(p => p.paidAmount > 0);
-                setPurchases(paidPurchases);
+                // Now accessing PAYMENTS, so no need to filter paidAmount > 0 (amount is always > 0 in Payment model)
+                setPurchases(transRes.data.data);
             }
 
             if (expRes.data.success) {
@@ -82,8 +79,8 @@ const Expenses = () => {
         }
     };
 
-    // Calculate Totals
-    const totalPurchasesPaid = purchases.reduce((sum, item) => sum + (item.paidAmount || 0), 0);
+    // Calculate Totals using Payment Amount
+    const totalPurchasesPaid = purchases.reduce((sum, item) => sum + (item.amount || 0), 0);
     const totalOtherExpenses = expenses.reduce((sum, item) => sum + (item.amount || 0), 0);
     const combinedTotal = totalPurchasesPaid + totalOtherExpenses;
 
@@ -146,44 +143,51 @@ const Expenses = () => {
                                             <tr>
                                                 <th className="ps-4 py-3">Date</th>
                                                 <th className="py-3">Supplier</th>
-                                                <th className="py-3">Items</th>
-                                                <th className="py-3 text-end">Total Bill</th>
+                                                <th className="py-3">Items / Description</th>
+                                                <th className="py-3 text-end">Bill Total</th>
                                                 <th className="py-3 text-end pe-4">Paid Amount</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {purchases.length > 0 ? (
-                                                purchases.map(p => (
-                                                    <tr key={p._id}>
-                                                        <td className="ps-4 text-muted">
-                                                            {new Date(p.date).toLocaleDateString()}
-                                                        </td>
-                                                        <td className="fw-medium">{p.partyName}</td>
-                                                        <td>
-                                                            <small className="text-muted">
-                                                                {p.items?.length > 0
-                                                                    ? `${p.items[0].productName} ${p.items.length > 1 ? `+ ${p.items.length - 1} others` : ''}`
-                                                                    : 'Unknown Items'}
-                                                            </small>
-                                                        </td>
-                                                        <td className="text-end text-muted">
-                                                            {p.totalAmount.toLocaleString()}
-                                                        </td>
-                                                        <td className="text-end pe-4">
-                                                            <div className="fw-bold text-danger">
-                                                                {p.paidAmount.toLocaleString()}
-                                                            </div>
-                                                            {(p.totalAmount - p.paidAmount) > 0 && (
-                                                                <small className="text-warning fw-bold" style={{ fontSize: '0.75rem' }}>
-                                                                    Pending: {(p.totalAmount - p.paidAmount).toLocaleString()}
+                                                purchases.map(p => {
+                                                    // Helper to extract display info
+                                                    // p is now a PAYMENT object
+                                                    const tx = p.transactionRef;
+                                                    const isPurchase = tx && tx.items;
+
+                                                    let itemsDisplay = p.description;
+                                                    if (isPurchase) {
+                                                        itemsDisplay = tx.items.length > 0
+                                                            ? `${tx.items[0].productName} ${tx.items.length > 1 ? `+ ${tx.items.length - 1} others` : ''}`
+                                                            : 'Unknown Items';
+                                                    }
+
+                                                    return (
+                                                        <tr key={p._id}>
+                                                            <td className="ps-4 text-muted">
+                                                                {new Date(p.date).toLocaleDateString()}
+                                                            </td>
+                                                            <td className="fw-medium">{p.supplierName}</td>
+                                                            <td>
+                                                                <small className="text-muted">
+                                                                    {itemsDisplay}
                                                                 </small>
-                                                            )}
-                                                        </td>
-                                                    </tr>
-                                                ))
+                                                            </td>
+                                                            <td className="text-end text-muted">
+                                                                {tx ? tx.totalAmount.toLocaleString() : '-'}
+                                                            </td>
+                                                            <td className="text-end pe-4">
+                                                                <div className="fw-bold text-danger">
+                                                                    {p.amount.toLocaleString()}
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })
                                             ) : (
                                                 <tr>
-                                                    <td colSpan="5" className="text-center py-5 text-muted">No paid purchases found.</td>
+                                                    <td colSpan="5" className="text-center py-5 text-muted">No supplier payments found.</td>
                                                 </tr>
                                             )}
                                         </tbody>

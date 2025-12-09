@@ -77,15 +77,44 @@ exports.getCustomerLedger = async (req, res, next) => {
 
         // Merge
         const ledger = [
-            ...sales.map(t => ({
-                _id: t._id,
-                date: t.date,
-                type: 'sale',
-                description: 'Sale', // Could add item count etc
-                amount: t.totalAmount,
-                isDebit: true, // Customer Owes this
-                notes: t.notes
-            })),
+            ...sales.flatMap(t => {
+                if (t.paidAmount !== undefined && t.paidAmount > 0 && t.paidAmount < t.totalAmount) {
+                    // Partial Split
+                    return [
+                        {
+                            _id: t._id + '_paid',
+                            date: t.date,
+                            type: 'sale',
+                            description: 'Sale (Paid)',
+                            amount: t.paidAmount,
+                            isDebit: true,
+                            notes: t.notes
+                        },
+                        {
+                            _id: t._id + '_pending',
+                            date: t.date,
+                            type: 'sale',
+                            description: 'Sale (Pending)',
+                            amount: t.totalAmount - t.paidAmount,
+                            isDebit: true,
+                            notes: t.notes
+                        }
+                    ];
+                }
+
+                let status = '';
+                if (t.paidAmount !== undefined && t.paidAmount === 0) status = ' (Pending)';
+
+                return [{
+                    _id: t._id,
+                    date: t.date,
+                    type: 'sale',
+                    description: 'Sale' + status,
+                    amount: t.totalAmount,
+                    isDebit: true,
+                    notes: t.notes
+                }];
+            }),
             ...returns.map(t => ({
                 _id: t._id,
                 date: t.date,

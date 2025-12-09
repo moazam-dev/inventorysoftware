@@ -11,6 +11,10 @@ const expenseSchema = new mongoose.Schema({
         required: true,
         min: 0
     },
+    paidAmount: {
+        type: Number,
+        default: 0
+    },
     category: {
         type: String,
         required: true, // e.g., Rent, Utilities, Salary

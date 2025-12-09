@@ -3,6 +3,9 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const connectDB = require('./config/db');
+const dotenv = require("dotenv")
+
+
 
 // Connect to Database
 connectDB();

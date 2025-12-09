@@ -3,8 +3,8 @@ const Payment = require('../models/Payment'); // To show ledger for a method
 
 exports.createPaymentMethod = async (req, res, next) => {
     try {
-        const { name, type, details } = req.body;
-        const method = await PaymentMethod.create({ name, type, details });
+        const { name, type, details, accountNumber } = req.body;
+        const method = await PaymentMethod.create({ name, type, details, accountNumber });
         res.status(201).json({ success: true, data: method });
     } catch (error) {
         next(error);

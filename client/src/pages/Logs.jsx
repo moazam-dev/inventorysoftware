@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Button, Row, Col, InputGroup, Form, Spinner, Tabs, Tab, Card, Table, Badge } from 'react-bootstrap'
-import { FaSearch, FaArrowLeft, FaIndustry, FaMoneyBillWave, FaUndo, FaDownload } from 'react-icons/fa'
+import { FaSearch, FaArrowLeft, FaIndustry, FaMoneyBillWave, FaUndo, FaDownload, FaUserTie } from 'react-icons/fa'
 import axios from 'axios'
 import { YearCard, LogCard, DayCard, HeaderStats, TransactionRow } from '../components/logs/LogComponents'
 import { downloadCSV, generateYearCSV, generateMonthCSV, generateDayCSV, generateSupplierLedgerCSV } from '../utils/csvExport'
@@ -566,7 +566,7 @@ const Logs = () => {
                                                             {item.notes && <small className="text-muted">{item.notes}</small>}
                                                         </td>
                                                         <td className={`py-3 text-end pe-4 fw-bold ${item.isDebit ? 'text-danger' : 'text-success'}`}>
-                                                            {item.isDebit ? '-' : '+'} Rs {Math.abs(item.amount).toLocaleString()}
+                                                            {item.isDebit ? '+' : '-'} Rs {Math.abs(item.amount).toLocaleString()}
                                                         </td>
                                                     </tr>
                                                 ))}
@@ -597,7 +597,14 @@ const Logs = () => {
                                                 <div className="mb-3 text-info">
                                                     <FaMoneyBillWave size={40} />
                                                 </div>
-                                                <h5 className="fw-bold text-dark">{m.name}</h5>
+                                                <h5 className="fw-bold text-dark mb-1">{m.name}</h5>
+                                                {m.accountNumber && (
+                                                    <div className="mb-2">
+                                                        <Badge bg="light" text="secondary" className="border fw-normal">
+                                                            Acc: {m.accountNumber}
+                                                        </Badge>
+                                                    </div>
+                                                )}
                                                 <div className="text-muted small mb-2">{m.type}</div>
                                                 <Badge bg="info" text="dark" className="fw-normal">
                                                     Balance: Rs {m.currentBalance.toLocaleString()}
@@ -621,6 +628,11 @@ const Logs = () => {
                                                 <Card.Body className="d-flex align-items-center justify-content-between">
                                                     <div>
                                                         <small className="text-muted">Current Balance in {selectedMethod.name}</small>
+                                                        {selectedMethod.accountNumber && (
+                                                            <div className="text-muted mb-2">
+                                                                <span className="fw-bold">Acc #: {selectedMethod.accountNumber}</span>
+                                                            </div>
+                                                        )}
                                                         <h3 className="fw-bold mb-0 text-dark">Rs {selectedMethod.currentBalance.toLocaleString()}</h3>
                                                     </div>
                                                     <FaMoneyBillWave size={40} className="text-info opacity-50" />

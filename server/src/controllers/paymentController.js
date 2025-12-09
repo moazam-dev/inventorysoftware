@@ -88,16 +88,24 @@ exports.createPayment = async (req, res, next) => {
 exports.getPayments = async (req, res, next) => {
     try {
         // Filter by supplier if needed
-        const { supplier } = req.query;
+        // Filter by supplier if needed
+        const { supplier, type } = req.query;
         let query = {};
+
         if (supplier) {
             query.supplierName = supplier;
-            query.type = 'pay_supplier';
+        }
+        if (type) {
+            query.type = type;
         }
 
         const payments = await Payment.find(query)
             .populate('paymentMethod', 'name')
             .populate('customer', 'name')
+            .populate({
+                path: 'transactionRef',
+                select: 'items totalAmount partyName date'
+            })
             .sort({ date: -1 });
 
         res.json({ success: true, data: payments });

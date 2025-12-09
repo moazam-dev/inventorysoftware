@@ -1,6 +1,6 @@
 import React from 'react'
 import { Outlet, NavLink } from 'react-router-dom'
-import { FaHome, FaBoxOpen, FaShoppingCart, FaHistory, FaMoneyBillWave } from 'react-icons/fa'
+import { FaHome, FaBoxOpen, FaShoppingCart, FaHistory, FaMoneyBillWave, FaClipboardList } from 'react-icons/fa'
 
 const Layout = () => {
     return (
@@ -30,11 +30,14 @@ const Layout = () => {
                     <NavLink to="/logs" className={({ isActive }) => `nav-item-custom ${isActive ? 'active-nav-item' : ''}`}>
                         <FaHistory className="me-2" /> Logs
                     </NavLink>
+                    <NavLink to="/pending-payments" className={({ isActive }) => `nav-item-custom ${isActive ? 'active-nav-item' : ''}`}>
+                        <FaClipboardList className="me-2" /> Pending Payments
+                    </NavLink>
                 </div>
             </div>
 
             {/* Main Content */}
-            <div className="flex-grow-1 bg-light-subtle" style={{ marginLeft: '250px' }}>
+            <div id="main-content" className="flex-grow-1 bg-light-subtle" style={{ marginLeft: '250px' }}>
                 <Outlet />
             </div>
         </div>

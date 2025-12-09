@@ -19,17 +19,19 @@ const Dashboard = () => {
     const [topProducts, setTopProducts] = useState([]);
     const [categoryPerformance, setCategoryPerformance] = useState([]);
     const [salesTrends, setSalesTrends] = useState([]);
+    const [totalReceivables, setTotalReceivables] = useState(0);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const API_URL = 'http://localhost:5000/api';
 
-                const [summaryRes, topProductsRes, categoryRes, trendsRes] = await Promise.all([
+                const [summaryRes, topProductsRes, categoryRes, trendsRes, customersRes] = await Promise.all([
                     axios.get(`${API_URL}/dashboard/summary`),
                     axios.get(`${API_URL}/analytics/top-products`),
                     axios.get(`${API_URL}/analytics/category-performance`),
-                    axios.get(`${API_URL}/analytics/sales-trends`)
+                    axios.get(`${API_URL}/analytics/sales-trends`),
+                    axios.get(`${API_URL}/customers`)
                 ]);
 
                 if (summaryRes.data.success) {
@@ -43,6 +45,10 @@ const Dashboard = () => {
                 }
                 if (trendsRes.data.success) {
                     setSalesTrends(trendsRes.data.data);
+                }
+                if (customersRes.data.success) {
+                    const totalPending = customersRes.data.data.reduce((sum, c) => sum + (c.currentBalance || 0), 0);
+                    setTotalReceivables(totalPending);
                 }
             } catch (error) {
                 console.error('Error fetching dashboard data:', error);

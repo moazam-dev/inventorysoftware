@@ -207,7 +207,7 @@ const BulkProductModal = ({ show, onHide, onSuccess }) => {
                                                 size="sm"
                                             />
                                             <datalist id="categoryOptions">
-                                                {categories.map((c, i) => <option key={i} value={c} />)}
+                                                {categories.map((c, i) => <option key={i} value={c.name} />)}
                                             </datalist>
                                         </td>
                                         <td>

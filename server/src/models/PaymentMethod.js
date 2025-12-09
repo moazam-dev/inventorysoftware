@@ -15,6 +15,10 @@ const paymentMethodSchema = new mongoose.Schema({
     details: {
         type: String // Account #, etc.
     },
+    accountNumber: {
+        type: String,
+        trim: true
+    },
     currentBalance: {
         type: Number,
         default: 0 // Track how much money is in this account

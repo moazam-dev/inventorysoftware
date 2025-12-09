@@ -151,10 +151,18 @@ body {
     visibility: visible !important;
   }
 
-  /* Optimize for receipt-sized paper */
+  /* Optimize for receipt-sized paper or Reports */
   @page {
-    size: A5 portrait;
+    size: auto;
+    /* Allow auto size so reports print on A4 and invoices on separate paper if selected */
     margin: 10mm;
+  }
+
+  /* Reset Main Content Layout for Print */
+  #main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+    padding: 0 !important;
   }
 
   /* Ensure proper text rendering */

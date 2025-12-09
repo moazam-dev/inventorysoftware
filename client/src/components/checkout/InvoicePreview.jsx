@@ -69,6 +69,35 @@ const InvoicePreview = ({ show, onHide, invoiceData }) => {
                             <span>Total:</span>
                             <span>Rs {invoiceData.totalAmount.toLocaleString()}</span>
                         </div>
+                        {/* Show Previous Balance & Net Pending if available */}
+                        {invoiceData.previousBalance !== undefined && invoiceData.previousBalance > 0 && (
+                            <div className="d-flex justify-content-between mb-1 text-muted">
+                                <span>Previous Balance:</span>
+                                <span>Rs {invoiceData.previousBalance.toLocaleString()}</span>
+                            </div>
+                        )}
+
+                        {/* Show Payment Details if Partial/Pending */}
+                        {invoiceData.paidAmount !== undefined && (
+                            <>
+                                <div className="d-flex justify-content-between mb-1 mt-2 text-success">
+                                    <span>Paid:</span>
+                                    <span>Rs {invoiceData.paidAmount.toLocaleString()}</span>
+                                </div>
+
+                                {/* Current Tx Pending */}
+                                {/* <div className="d-flex justify-content-between mb-2 text-danger fw-bold">
+                                    <span>Pending:</span>
+                                    <span>Rs {(invoiceData.totalAmount - invoiceData.paidAmount).toLocaleString()}</span>
+                                </div> */}
+
+                                {/* TOTAL NET PENDING (Previous + Current Pending) */}
+                                <div className="d-flex justify-content-between mb-2 text-danger fw-bold border-top pt-1 mt-1">
+                                    <span>Total Pending:</span>
+                                    <span>Rs {((invoiceData.totalAmount - invoiceData.paidAmount) + (invoiceData.previousBalance || 0)).toLocaleString()}</span>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
 

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Card, Table, Button, Form, InputGroup, Badge, Row, Col } from 'react-bootstrap'
+import { Card, Table, Button, Form, InputGroup, Badge, Row, Col, Alert } from 'react-bootstrap'
 import { FaTrash, FaCheck, FaUser, FaPhone } from 'react-icons/fa'
 
 const Cart = ({
@@ -15,6 +15,7 @@ const Cart = ({
     paymentMethods = [],
     selectedCustomer,
     setSelectedCustomer,
+    selectedCustomerObj, // NEW PROP
     paidAmount,
     setPaidAmount,
 
@@ -28,7 +29,19 @@ const Cart = ({
 }) => {
 
     const finalTotal = total - (discount || 0);
+    const prevBalance = selectedCustomerObj?.currentBalance || 0;
+    const netPayable = finalTotal + prevBalance;
+
+    // Amount paying now defaults to full bill (finalTotal) not including old debt unless specified? 
+    // Usually customers pay current bill + some old debt, or just current. 
+    // Let's keep input placeholder as finalTotal. 
+
     const amountToPay = paidAmount === '' ? finalTotal : Number(paidAmount);
+
+    // Total New Balance = (Previous + Current) - Paid
+    const newTotalBalance = netPayable - amountToPay;
+
+    // Balance for THIS transaction
     const balanceDue = finalTotal - amountToPay;
 
     return (
@@ -38,6 +51,7 @@ const Cart = ({
             </Card.Header>
             <Card.Body className="d-flex flex-column">
                 <div className="flex-grow-1" style={{ overflowY: 'auto', maxHeight: '300px' }}>
+                    {/* ... (Existing Cart Items Code is fine, not changing) ... */}
                     {cartItems.length === 0 ? (
                         <div className="text-center text-muted py-5">
                             Cart is empty
@@ -55,7 +69,7 @@ const Cart = ({
                                             <InputGroup size="sm">
                                                 <Button variant="outline-secondary" onClick={() => onUpdateQty(index, item.qty - 1)}>-</Button>
                                                 <Form.Control
-                                                    className="text-center"
+                                                    className="text-center" // Check input
                                                     value={item.qty}
                                                     onChange={(e) => onUpdateQty(index, parseInt(e.target.value) || 1)}
                                                 />
@@ -91,6 +105,14 @@ const Cart = ({
                                 <option key={c._id} value={c._id}>{c.name} {c.phone ? `(${c.phone})` : ''}</option>
                             ))}
                         </Form.Select>
+
+                        {/* SHOW PREVIOUS BALANCE IF CUSTOMER SELECTED */}
+                        {selectedCustomerObj && (
+                            <div className="alert alert-info py-2 px-3 small mb-2 d-flex justify-content-between">
+                                <span>Previous Balance:</span>
+                                <span className="fw-bold fs-6">Rs {prevBalance.toLocaleString()}</span>
+                            </div>
+                        )}
 
                         {!selectedCustomer && (
                             <Row className="g-2">
@@ -134,9 +156,17 @@ const Cart = ({
                         </InputGroup>
                     </div>
                     <div className="d-flex justify-content-between fw-bold fs-5 mb-3 text-dark">
-                        <span>Total</span>
+                        <span>Current Bill</span>
                         <span>Rs {finalTotal}</span>
                     </div>
+
+                    {/* NET PAYABLE (Bill + Previous) */}
+                    {selectedCustomerObj && (
+                        <div className="d-flex justify-content-between fw-bold fs-5 mb-3 text-primary border-top border-bottom py-2">
+                            <span>Net Payable</span>
+                            <span>Rs {netPayable.toLocaleString()}</span>
+                        </div>
+                    )}
 
                     <Form.Group className="mb-3">
                         <Row className="g-2">

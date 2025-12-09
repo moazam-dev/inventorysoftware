@@ -97,15 +97,28 @@ const Checkout = () => {
     const handleCheckout = async () => {
         if (cartItems.length === 0) return;
 
+        // Validation: Enforce Name and Number
+        const currentName = selectedCustomer ? customers.find(c => c._id === selectedCustomer)?.name : customer.name;
+        const currentPhone = selectedCustomer ? customers.find(c => c._id === selectedCustomer)?.phone : customer.phone;
+
+        if (!currentName || !currentName.trim()) {
+            toast.error('Customer Name is required');
+            return;
+        }
+        if (!currentPhone || !currentPhone.trim()) {
+            toast.error('Customer Phone is required');
+            return;
+        }
+
         try {
             const payload = {
                 items: cartItems.map(item => ({ product: item.product, quantity: item.qty })),
                 discount,
-                partyName: customer.name || (selectedCustomer ? customers.find(c => c._id === selectedCustomer)?.name : 'Walk-in Customer'),
+                partyName: currentName,
                 customerId: selectedCustomer || undefined,
-                partyPhone: customer.phone,
-                paymentMethod, // ObjectId
-                paidAmount: paidAmount === '' ? calculateTotal() - discount : Number(paidAmount),
+                partyPhone: currentPhone,
+                paymentMethod: paymentMethod || undefined, // Send undefined if empty string
+                paidAmount: paidAmount === '' ? 0 : Number(paidAmount),
                 notes: notes || 'Sale via Checkout'
             };
 
@@ -113,7 +126,13 @@ const Checkout = () => {
 
             if (res.data.success) {
                 toast.success('Sale completed successfully!');
-                setInvoiceData(res.data.data);
+
+                // Merge Previous Balance into Invoice Data for Receipt
+                const customerObj = customers.find(c => c._id === selectedCustomer);
+                const prevBalance = customerObj ? customerObj.currentBalance : 0;
+
+                setInvoiceData({ ...res.data.data, previousBalance: prevBalance });
+
                 setShowInvoice(true);
                 setCartItems([]);
                 setDiscount(0);
@@ -132,7 +151,7 @@ const Checkout = () => {
 
 
     const totalAmount = calculateTotal() - discount;
-    const payingNow = paidAmount === '' ? totalAmount : Number(paidAmount);
+    const payingNow = paidAmount === '' ? 0 : Number(paidAmount);
     const pendingBalance = totalAmount - payingNow;
 
     return (
@@ -159,10 +178,14 @@ const Checkout = () => {
                         grandTotal={totalAmount}
 
                         // New Props
-                        customers={customers}
-                        paymentMethods={paymentMethods}
                         selectedCustomer={selectedCustomer}
                         setSelectedCustomer={setSelectedCustomer}
+                        customers={customers}
+                        paymentMethods={paymentMethods}
+
+                        // New: Pass selected customer full object to display balance
+                        selectedCustomerObj={customers.find(c => c._id === selectedCustomer)}
+
                         paidAmount={paidAmount}
                         setPaidAmount={setPaidAmount}
 

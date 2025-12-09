@@ -51,15 +51,45 @@ exports.getSupplierLedger = async (req, res, next) => {
 
         // 4. Merge and Sort
         const ledger = [
-            ...expenses.map(e => ({
-                _id: e._id,
-                date: e.date,
-                type: 'purchase',
-                description: e.title,
-                amount: e.amount,
-                isCredit: true, // We owe +
-                notes: e.notes || ''
-            })),
+            ...expenses.flatMap(e => {
+                if (e.paidAmount !== undefined && e.paidAmount > 0 && e.paidAmount < e.amount) {
+                    // Partial Split
+                    return [
+                        {
+                            _id: e._id + '_paid', // Unique ID
+                            date: e.date,
+                            type: 'purchase',
+                            description: e.title + ' (Paid)',
+                            amount: e.paidAmount,
+                            isCredit: true,
+                            notes: e.notes || ''
+                        },
+                        {
+                            _id: e._id + '_pending',
+                            date: e.date,
+                            type: 'purchase',
+                            description: e.title + ' (Pending)',
+                            amount: e.amount - e.paidAmount,
+                            isCredit: true, // Still owes this part
+                            notes: e.notes || ''
+                        }
+                    ];
+                }
+
+                // Normal (Full or Pending)
+                let status = '';
+                if (e.paidAmount !== undefined && e.paidAmount === 0) status = ' (Pending)';
+
+                return [{
+                    _id: e._id,
+                    date: e.date,
+                    type: 'purchase',
+                    description: e.title + status,
+                    amount: e.amount,
+                    isCredit: true,
+                    notes: e.notes || ''
+                }];
+            }),
             ...returns.map(t => ({
                 _id: t._id,
                 date: t.date,
@@ -101,6 +131,63 @@ exports.getSupplierLedger = async (req, res, next) => {
                 ledger
             }
         });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.getSupplierStats = async (req, res, next) => {
+    try {
+        const Expense = require('../models/Expense');
+        // Fetch ALL relevant data
+        const [expenses, returns, payments] = await Promise.all([
+            Expense.find({
+                category: { $in: ['Stock Purchase', 'Restocked'] },
+                supplier: { $ne: null }
+            }).lean(),
+            Transaction.find({
+                type: 'return_to_supplier'
+            }).lean(),
+            Payment.find({
+                type: 'pay_supplier'
+            }).lean()
+        ]);
+
+        const statsMap = {};
+
+        // Helper to init
+        const init = (name) => {
+            if (!name) return;
+            if (!statsMap[name]) {
+                statsMap[name] = { name, totalPurchased: 0, totalReturned: 0, totalPaid: 0 };
+            }
+        };
+
+        // 1. Process Expenses
+        expenses.forEach(e => {
+            init(e.supplier);
+            if (e.supplier) statsMap[e.supplier].totalPurchased += e.amount;
+        });
+
+        // 2. Process Returns
+        returns.forEach(t => {
+            init(t.partyName);
+            if (t.partyName) statsMap[t.partyName].totalReturned += t.totalAmount;
+        });
+
+        // 3. Process Payments
+        payments.forEach(p => {
+            init(p.supplierName);
+            if (p.supplierName) statsMap[p.supplierName].totalPaid += p.amount;
+        });
+
+        // Convert to Array & Calculate Balance
+        const report = Object.values(statsMap).map(s => ({
+            ...s,
+            currentBalance: s.totalPurchased - (s.totalReturned + s.totalPaid)
+        })).sort((a, b) => a.name.localeCompare(b.name));
+
+        res.json({ success: true, data: report });
     } catch (error) {
         next(error);
     }

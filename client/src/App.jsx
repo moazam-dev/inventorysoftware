@@ -8,6 +8,7 @@ import Checkout from './pages/Checkout'
 import Logs from './pages/Logs'
 import Expenses from './pages/Expenses'
 import Payments from './pages/Payments'
+import PendingPayments from './pages/PendingPayments'
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="payments" element={<Payments />} />
           <Route path="expenses" element={<Expenses />} />
           <Route path="logs" element={<Logs />} />
+          <Route path="pending-payments" element={<PendingPayments />} />
         </Route>
       </Routes>
       <ToastContainer position="top-right" autoClose={3000} />

@@ -40,9 +40,30 @@ exports.createSale = async (data) => {
 
     // 2. Handle Customer Logic (Balance Update)
     let customerGivenName = partyName;
-    if (customerId) {
+    let finalCustomerId = customerId;
+
+    // If no ID but we have details, try to find or create
+    if (!finalCustomerId && partyName && partyPhone) {
         const Customer = require('../models/Customer');
-        const customer = await Customer.findById(customerId);
+        let customer = await Customer.findOne({ phone: partyPhone });
+
+        if (customer) {
+            // Check if names match (case-insensitive loose check)
+            if (customer.name.toLowerCase() !== partyName.toLowerCase()) {
+                throw new Error(`Phone number ${partyPhone} belongs to ${customer.name}. Use a different number.`);
+            }
+        } else {
+            customer = await Customer.create({
+                name: partyName,
+                phone: partyPhone
+            });
+        }
+        finalCustomerId = customer._id;
+    }
+
+    if (finalCustomerId) {
+        const Customer = require('../models/Customer');
+        const customer = await Customer.findById(finalCustomerId);
         if (customer) {
             customerGivenName = customer.name;
             // Total cost = finalAmount.
@@ -66,7 +87,7 @@ exports.createSale = async (data) => {
         totalAmount: finalAmount,
         discount: discount || 0,
         partyName: customerGivenName,
-        customer: customerId || undefined,
+        customer: finalCustomerId || undefined,
         partyPhone,
         paymentMethod: paymentMethod, // ObjectId
         paidAmount: amountPaid,
@@ -204,6 +225,7 @@ exports.createPurchase = async (data) => {
     await Expense.create({
         title: title,
         amount: totalCost, // Full Amount (Liability)
+        paidAmount: amountPaid,
         category: 'Stock Purchase',
         supplier: supplier || 'Unknown Supplier',
         date: new Date(),

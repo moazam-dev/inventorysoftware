@@ -24,6 +24,7 @@ const Payments = () => {
     // Method Management State
     const [showMethodModal, setShowMethodModal] = useState(false);
     const [newMethodName, setNewMethodName] = useState('');
+    const [newAccountNumber, setNewAccountNumber] = useState('');
     const [newMethodType, setNewMethodType] = useState('cash');
 
     // Receipt State
@@ -112,11 +113,13 @@ const Payments = () => {
         try {
             await axios.post(`${API_URL}/payment-methods`, {
                 name: newMethodName,
-                type: newMethodType
+                type: newMethodType,
+                accountNumber: newAccountNumber
             });
             toast.success('Payment method created');
             setShowMethodModal(false);
             setNewMethodName('');
+            setNewAccountNumber('');
             fetchPaymentMethods();
         } catch (err) {
             toast.error('Failed to create method');
@@ -182,10 +185,55 @@ const Payments = () => {
         }
     };
 
-    const handlePrint = useReactToPrint({
-        content: () => receiptRef.current,
-        documentTitle: 'Payment_Receipt',
-    });
+    const handlePrint = () => {
+        const content = receiptRef.current;
+        if (!content) {
+            toast.error("Receipt not found");
+            return;
+        }
+
+        const printWindow = window.open('', '', 'width=400,height=600');
+        if (!printWindow) {
+            toast.error("Popup blocked. Please allow popups.");
+            return;
+        }
+
+        const styles = Array.from(document.styleSheets)
+            .map(styleSheet => {
+                try {
+                    return Array.from(styleSheet.cssRules)
+                        .map(rule => rule.cssText)
+                        .join('');
+                } catch (e) {
+                    return '';
+                }
+            })
+            .join('\n');
+
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Payment Receipt</title>
+                    <style>
+                        ${styles}
+                        body { margin: 20px; font-family: sans-serif; }
+                        .receipt-paper { border: none !important; box-shadow: none !important; }
+                    </style>
+                </head>
+                <body>
+                    ${content.innerHTML}
+                </body>
+            </html>
+        `);
+
+        printWindow.document.close();
+        printWindow.focus();
+
+        setTimeout(() => {
+            printWindow.print();
+            printWindow.close();
+        }, 500);
+    };
 
     return (
         <div className="container-fluid p-4">
@@ -275,7 +323,9 @@ const Payments = () => {
                                     >
                                         <option value="">-- Select Method --</option>
                                         {paymentMethods.map(m => (
-                                            <option key={m._id} value={m._id}>{m.name} ({m.type})</option>
+                                            <option key={m._id} value={m._id}>
+                                                {m.name} {m.accountNumber ? `[${m.accountNumber}]` : ''} ({m.type})
+                                            </option>
                                         ))}
                                     </Form.Select>
                                 </Form.Group>
@@ -413,6 +463,14 @@ const Payments = () => {
                         />
                     </Form.Group>
                     <Form.Group className="mb-3">
+                        <Form.Label>Account Number</Form.Label>
+                        <Form.Control
+                            placeholder="e.g. 03001234567 or IBAN"
+                            value={newAccountNumber}
+                            onChange={(e) => setNewAccountNumber(e.target.value)}
+                        />
+                    </Form.Group>
+                    <Form.Group className="mb-3">
                         <Form.Label>Type</Form.Label>
                         <Form.Select
                             value={newMethodType}
@@ -430,9 +488,8 @@ const Payments = () => {
                     <Button variant="primary" onClick={handleCreateMethod} disabled={!newMethodName}>Create Method</Button>
                 </Modal.Footer>
             </Modal>
-        </div>
+        </div >
     )
 }
-
 
 export default Payments
